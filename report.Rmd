@@ -1,0 +1,65 @@
+---
+title: "Deskripsi Aplikasi Shiny Prediksi Regresi"
+author: "Ameliatus Sholichah"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## 1. Pendahuluan
+
+Aplikasi ini dirancang menggunakan **R Shiny** untuk membantu pengguna melakukan **prediksi nilai variabel Y berdasarkan nilai variabel X** dengan metode regresi linier sederhana. Aplikasi ini sangat berguna dalam eksplorasi data serta prediksi berbasis model regresi, khususnya untuk data .csv yang diunggah pengguna.
+
+---
+
+## 2. Desain Aplikasi
+
+Aplikasi terdiri dari dua bagian utama:
+
+- **Sidebar Panel**: berisi kontrol pengguna seperti upload file, pemilihan variabel, pelatihan model, dan prediksi.
+- **Main Panel**: berisi output visual dan teks seperti preview data, plot korelasi, hasil eksplorasi data, ringkasan model, dan hasil prediksi.
+
+---
+
+## 3. Alur Penggunaan Aplikasi
+
+1. **Unggah Dataset**  
+   Pengguna memilih dan mengunggah file `.csv` melalui widget `fileInput`. File divalidasi agar hanya format `.csv` yang diterima.
+
+2. **Pilih Variabel X dan Y**  
+   Setelah data berhasil dimuat, aplikasi secara otomatis menampilkan dropdown untuk memilih variabel independen (X) dan dependen (Y).
+
+3. **Eksplorasi Data**  
+   - **Preview Data**: ditampilkan dalam bentuk tabel interaktif.
+   - **Matriks Korelasi**: dibuat berdasarkan variabel numerik dalam dataset.
+   - **Plot EDA**: scatterplot dengan garis regresi ditampilkan untuk visualisasi hubungan X dan Y.
+
+4. **Latih Model Regresi**  
+   Dengan menekan tombol *Latih Model Regresi*, aplikasi membentuk model regresi linier menggunakan fungsi `lm()`.
+
+5. **Simpan dan Muat Model**  
+   - Model dapat disimpan sebagai file `.rds`.
+   - Model eksternal (.rds) juga dapat dimuat kembali untuk digunakan tanpa perlu melatih ulang.
+
+6. **Prediksi Nilai Baru**  
+   Pengguna dapat memasukkan nilai X baru, dan aplikasi akan memberikan hasil prediksi nilai Y berdasarkan model regresi yang tersedia.
+
+---
+
+## 4. Fungsionalitas Utama
+
+| Fitur                      | Deskripsi                                                                 |
+|---------------------------|---------------------------------------------------------------------------|
+| Unggah Data               | Upload file .csv dan validasi format                                      |
+| Pemilihan Variabel        | Dropdown dinamis dari kolom dataset                                      |
+| Visualisasi Korelasi      | Plot heatmap korelasi dari variabel numerik                              |
+| Plot EDA                  | Scatter plot + garis regresi                                              |
+| Model Regresi             | Regresi linier sederhana `Y ~ X`                                          |
+| Simpan/Muat Model         | Ekspor dan impor model `.rds`                                             |
+| Prediksi Nilai Baru       | Prediksi berdasarkan input pengguna terhadap model yang dilatih           |
+
+---
+
+## 5. Penutup
+
+Aplikasi ini bersifat fleksibel dan dapat digunakan untuk berbagai jenis dataset numerik. Dengan antarmuka yang interaktif dan fungsionalitas prediktif, aplikasi ini cocok digunakan untuk keperluan praktikum, pembelajaran, maupun riset eksploratif awal terhadap data regresi.
+
