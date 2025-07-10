@@ -5,50 +5,42 @@ library(dplyr)
 library(reshape2)
 
 ui <- fluidPage(
-  titlePanel("Aplikasi Prediksi Variabel Y berdasarkan Variabel X"),
+  titlePanel("Aplikasi Prediksi Regresi Linier"),
   
   sidebarLayout(
     sidebarPanel(
-      fileInput("datafile", "Unggah Dataset (hanya .csv yang diterima)"),
-      
-      # Dropdown variabel X dan Y
+      fileInput("datafile", "Unggah Data Training (csv)"),
       uiOutput("xvar_ui"),
       uiOutput("yvar_ui"),
+      actionButton("train", "Latih Model"),
+      downloadButton("saveModel", "💾 Simpan Model (.rds)"),
+      actionButton("loadTrainedModel", "🔁 Muat Model"),
       
-      actionButton("train", "Latih Model Regresi"),
-      downloadButton("saveModel", "💾 Simpan Model"),
       
-      fileInput("modelFile", "Muat Model (.rds)", accept = ".rds"),
-      
-      textInput("newX", "Masukkan Nilai X Baru:"),
-      actionButton("predict", "Prediksi")
+      fileInput("testFile", "Unggah Data Testing (csv)", accept = ".csv"),
+      actionButton("predictTest", "🔍 Prediksi Data Testing")
     ),
     
     mainPanel(
       tabsetPanel(
         tabPanel("Data Preview", dataTableOutput("dataPreview")),
-        tabPanel("Correlation Matrix", plotOutput("corPlot")),
-        tabPanel("Exploratory Analysis", plotOutput("edaPlot")),
+        tabPanel("Correlation Mtrix", plotOutput("corPlot")),
+        tabPanel("Eksploratory Analysis", plotOutput("edaPlot")),
         tabPanel("Model Regresi", verbatimTextOutput("modelSummary")),
-        tabPanel("Prediksi Data Baru", verbatimTextOutput("prediction"))
+        tabPanel("Prediksi Data Baru", dataTableOutput("testPrediction"))
       )
     )
   )
 )
 
 server <- function(input, output, session) {
-  
-  # Validasi dan baca file csv
   dataset <- reactive({
     req(input$datafile)
     ext <- tools::file_ext(input$datafile$name)
-    validate(
-      need(ext == "csv", "❌ Format file tidak valid! Harap unggah file .csv")
-    )
+    validate(need(ext == "csv", "❌ Harap unggah file .csv untuk data training."))
     read.csv(input$datafile$datapath)
   })
   
-  # Dropdown dinamis untuk X dan Y
   output$xvar_ui <- renderUI({
     req(dataset())
     selectInput("xvar", "Pilih Variabel X:", choices = names(dataset()))
@@ -59,51 +51,53 @@ server <- function(input, output, session) {
     selectInput("yvar", "Pilih Variabel Y:", choices = names(dataset()))
   })
   
-  # Preview data
   output$dataPreview <- renderDataTable({
     dataset()
   })
   
-  # Plot korelasi
   output$corPlot <- renderPlot({
     data <- dataset()
     num_data <- data %>% select(where(is.numeric))
     corr <- cor(num_data)
-    ggplot(melt(corr), aes(Var1, Var2, fill = value)) +
-      geom_tile() +
+    corr_melt <- melt(corr)
+    ggplot(corr_melt, aes(Var1, Var2, fill = value)) +
+      geom_tile(color = "white") +
+      geom_text(aes(label = round(value, 2)), color = "black", size = 4) +
       scale_fill_gradient2(low = "blue", high = "red", mid = "white",
-                           midpoint = 0, limit = c(-1, 1)) +
+                           midpoint = 0, limit = c(-1, 1), name = "Korelasi") +
       theme_minimal() +
-      labs(title = "Matriks Korelasi")
+      labs(title = "Matriks Korelasi") +
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+    
   })
   
-  # EDA plot
   output$edaPlot <- renderPlot({
     req(input$xvar, input$yvar)
     data <- dataset()
     ggplot(data, aes_string(x = input$xvar, y = input$yvar)) +
-      geom_point() + 
-      geom_smooth(method = "lm") +
-      labs(x = input$xvar, y = input$yvar)
+      geom_point() +
+      geom_smooth(method = "lm", se = FALSE) +
+      labs(x = input$xvar, y = input$yvar, title = "Scatterplot dan Regresi Linier")
   })
   
-  # Model regresi
   model <- reactiveVal(NULL)
   
   observeEvent(input$train, {
     req(input$xvar, input$yvar)
     data <- dataset()
-    form <- as.formula(paste(input$yvar, "~", input$xvar))
-    model(lm(form, data = data))
+    formula <- as.formula(paste(input$yvar, "~", input$xvar))
+    trained_model <- lm(formula, data = data)
+    model(trained_model)
+    
+    # Simpan model ke file sementara
+    saveRDS(trained_model, file = "trained_model_temp.rds")
   })
   
-  # Ringkasan model
   output$modelSummary <- renderPrint({
     req(model())
     summary(model())
   })
   
-  # Simpan model
   output$saveModel <- downloadHandler(
     filename = function() { "model_regresi.rds" },
     content = function(file) {
@@ -111,25 +105,36 @@ server <- function(input, output, session) {
     }
   )
   
-  # Load model eksternal
-  observeEvent(input$modelFile, {
-    req(input$modelFile)
-    loaded_model <- readRDS(input$modelFile$datapath)
-    model(loaded_model)
+  observeEvent(input$loadTrainedModel, {
+    if (file.exists("trained_model_temp.rds")) {
+      latest_model <- readRDS("trained_model_temp.rds")
+      model(latest_model)
+      showNotification("✅ Model terbaru berhasil dimuat ulang!", type = "message")
+    } else {
+      showNotification("⚠️ Model belum dilatih atau file belum tersedia.", type = "error")
+    }
   })
   
-  # Prediksi nilai baru
-  prediction <- eventReactive(input$predict, {
-    req(model(), input$xvar)
-    xval <- as.numeric(input$newX)
+  testData <- reactive({
+    req(input$testFile)
+    ext <- tools::file_ext(input$testFile$name)
+    validate(need(ext == "csv", "❌ Harap unggah file .csv untuk data testing."))
+    read.csv(input$testFile$datapath)
+  })
+  
+  testPrediction <- eventReactive(input$predictTest, {
+    req(model(), testData(), input$xvar)
+    test <- testData()
     validate(
-      need(!is.na(xval), "❌ Masukkan angka valid untuk prediksi.")
+      need(input$xvar %in% names(test), paste0("❌ Variabel '", input$xvar, "' tidak ditemukan di data testing."))
     )
-    predict(model(), newdata = setNames(data.frame(xval), input$xvar))
+    prediction <- predict(model(), newdata = test)
+    hasil <- cbind(test, Prediksi_Y = prediction)
+    return(hasil)
   })
   
-  output$prediction <- renderPrint({
-    prediction()
+  output$testPrediction <- renderDataTable({
+    testPrediction()
   })
 }
 
