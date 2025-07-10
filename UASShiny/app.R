@@ -5,7 +5,7 @@ library(dplyr)
 library(reshape2)
 
 ui <- fluidPage(
-  titlePanel("Aplikasi Prediksi Regresi Linier"),
+  titlePanel("Aplikasi Prediksi Variabel Y Berdasarkan Variabel X"),
   
   sidebarLayout(
     sidebarPanel(
