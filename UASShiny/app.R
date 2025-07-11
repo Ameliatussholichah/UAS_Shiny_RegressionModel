@@ -24,9 +24,10 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(
         tabPanel("Data Preview", dataTableOutput("dataPreview")),
-        tabPanel("Correlation Mtrix", plotOutput("corPlot")),
+        tabPanel("Correlation Matrix", plotOutput("corPlot")),
         tabPanel("Eksploratory Analysis", plotOutput("edaPlot")),
-        tabPanel("Model Regresi", verbatimTextOutput("modelSummary")),
+        tabPanel("Model Regresi", verbatimTextOutput("modelSummary"),
+                 plotOutput("actualVsPredicted")),
         tabPanel("Prediksi Data Baru", dataTableOutput("testPrediction"))
       )
     )
@@ -96,6 +97,26 @@ server <- function(input, output, session) {
   output$modelSummary <- renderPrint({
     req(model())
     summary(model())
+  })
+    output$actualVsPredicted <- renderPlot({
+      req(model(), input$xvar, input$yvar)
+      data <- dataset()
+      
+      # Buat prediksi
+      predicted <- predict(model(), newdata = data)
+      actual <- data[[input$yvar]]
+      
+      df_plot <- data.frame(Aktual = actual, Prediksi = predicted)
+      
+      ggplot(df_plot, aes(x = Aktual, y = Prediksi)) +
+        geom_point(color = "purple") +
+        geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
+        labs(
+          title = "Plot Actual vs Predicted",
+          x = "Actual",
+          y = "Predicted"
+        ) +
+        theme_minimal()
   })
   
   output$saveModel <- downloadHandler(
