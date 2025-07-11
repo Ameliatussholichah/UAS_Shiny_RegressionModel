@@ -9,11 +9,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Ameliatus Sholichah" />
+<meta name="author" content="Ameliatus Sholichah dan Nanda Zhafran Mahendra" />
 
 <meta name="date" content="2025-07-11" />
 
-<title>Deskripsi Aplikasi Shiny Prediksi Regresi</title>
+<title>Deskripsi Aplikasi Shiny: Prediksi Regresi Linier</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,9 +350,9 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Deskripsi Aplikasi Shiny Prediksi
-Regresi</h1>
-<h4 class="author">Ameliatus Sholichah</h4>
+<h1 class="title toc-ignore">Deskripsi Aplikasi Shiny: Prediksi Regresi
+Linier</h1>
+<h4 class="author">Ameliatus Sholichah dan Nanda Zhafran Mahendra</h4>
 <h4 class="date">2025-07-11</h4>
 
 </div>
@@ -360,63 +360,88 @@ Regresi</h1>
 
 <div id="pendahuluan" class="section level2">
 <h2>1. Pendahuluan</h2>
-<p>Aplikasi ini dirancang menggunakan <strong>R Shiny</strong> untuk
-membantu pengguna melakukan <strong>prediksi nilai variabel Y
-berdasarkan nilai variabel X</strong> dengan metode regresi linier
-sederhana. Aplikasi ini sangat berguna dalam eksplorasi data serta
-prediksi berbasis model regresi, khususnya untuk data .csv yang diunggah
-pengguna.</p>
+<p>Aplikasi ini dibangun menggunakan <strong>R Shiny</strong> untuk
+melakukan <strong>prediksi nilai variabel Y berdasarkan nilai variabel
+X</strong> dengan pendekatan <strong>regresi linier sederhana</strong>.
+Aplikasi ini mendukung proses eksplorasi data, pelatihan model,
+penyimpanan dan pemuatan model <code>.rds</code>, serta prediksi
+terhadap data baru yang diunggah oleh pengguna.</p>
 <hr />
 </div>
-<div id="desain-aplikasi" class="section level2">
-<h2>2. Desain Aplikasi</h2>
-<p>Aplikasi terdiri dari dua bagian utama:</p>
+<div id="desain-antarmuka-aplikasi" class="section level2">
+<h2>2. Desain Antarmuka Aplikasi</h2>
+<p>Aplikasi memiliki dua komponen utama:</p>
 <ul>
-<li><strong>Sidebar Panel</strong>: berisi kontrol pengguna seperti
-upload file, pemilihan variabel, pelatihan model, dan prediksi.</li>
-<li><strong>Main Panel</strong>: berisi output visual dan teks seperti
-preview data, plot korelasi, hasil eksplorasi data, ringkasan model, dan
-hasil prediksi.</li>
+<li><strong>Sidebar Panel</strong>:
+<ul>
+<li>Upload data training (.csv)</li>
+<li>Pemilihan variabel X dan Y</li>
+<li>Tombol pelatihan model (<code>Latih Model</code>)</li>
+<li>Tombol simpan model (<code>💾 Simpan Model (.rds)</code>)</li>
+<li>Tombol muat ulang model (<code>🔁 Muat Model</code>)</li>
+<li>Upload data testing (.csv)</li>
+<li>Tombol prediksi (<code>🔍 Prediksi Data Testing</code>)</li>
+</ul></li>
+<li><strong>Main Panel (Output)</strong>:
+<ul>
+<li><strong>Data Preview</strong>: Tabel data dan ringkasan
+statistik</li>
+<li><strong>Correlation Matrix</strong>: Visualisasi korelasi antar
+variabel numerik</li>
+<li><strong>Exploratory Analysis</strong>: Scatterplot + garis
+regresi</li>
+<li><strong>Model Regresi</strong>: Ringkasan model dan metrik</li>
+<li><strong>Prediksi Data Baru</strong>: Tabel prediksi data
+testing</li>
+</ul></li>
 </ul>
 <hr />
 </div>
 <div id="alur-penggunaan-aplikasi" class="section level2">
 <h2>3. Alur Penggunaan Aplikasi</h2>
 <ol style="list-style-type: decimal">
-<li><p><strong>Unggah Dataset</strong><br />
-Pengguna memilih dan mengunggah file <code>.csv</code> melalui widget
-<code>fileInput</code>. File divalidasi agar hanya format
-<code>.csv</code> yang diterima.</p></li>
-<li><p><strong>Pilih Variabel X dan Y</strong><br />
-Setelah data berhasil dimuat, aplikasi secara otomatis menampilkan
-dropdown untuk memilih variabel independen (X) dan dependen
-(Y).</p></li>
-<li><p><strong>Eksplorasi Data</strong></p>
+<li><h3 id="unggah-data-training">Unggah Data Training</h3>
+<p>Pengguna mengunggah file <code>.csv</code> berisi data pelatihan.
+Aplikasi hanya menerima file dengan ekstensi <code>.csv</code>.</p></li>
+<li><h3 id="pemilihan-variabel-x-dan-y">Pemilihan Variabel X dan Y</h3>
+<p>Setelah data berhasil dimuat, pengguna dapat memilih variabel
+<strong>X</strong> (independen) dan <strong>Y</strong> (dependen) dari
+dropdown yang muncul otomatis berdasarkan nama kolom pada
+dataset.</p></li>
+<li><h3 id="visualisasi-data">Visualisasi Data</h3>
 <ul>
-<li><strong>Preview Data</strong>: ditampilkan dalam bentuk tabel
-interaktif.</li>
-<li><strong>Matriks Korelasi</strong>: dibuat berdasarkan variabel
-numerik dalam dataset.</li>
-<li><strong>Plot EDA</strong>: scatterplot dengan garis regresi
-ditampilkan untuk visualisasi hubungan X dan Y.</li>
+<li><strong>Data Preview</strong>: Menampilkan isi dataset dalam bentuk
+tabel interaktif.</li>
+<li><strong>Ringkasan Statistik</strong>: Menampilkan statistik
+deskriptif menggunakan fungsi <code>summary()</code>.</li>
+<li><strong>Matriks Korelasi</strong>: Menggunakan <code>cor()</code>
+dan <code>ggplot2</code> untuk membuat heatmap korelasi antar variabel
+numerik.</li>
+<li><strong>EDA Plot</strong>: Menampilkan scatterplot antara X dan Y,
+lengkap dengan garis regresi linier.</li>
 </ul></li>
-<li><p><strong>Latih Model Regresi</strong><br />
-Dengan menekan tombol <em>Latih Model Regresi</em>, aplikasi membentuk
-model regresi linier menggunakan fungsi <code>lm()</code>.</p></li>
-<li><p><strong>Simpan dan Muat Model</strong></p>
+<li><h3 id="pelatihan-model">Pelatihan Model</h3>
+<p>Model regresi dibentuk menggunakan fungsi <code>lm()</code> setelah
+tombol <strong>Latih Model</strong> ditekan. Formula yang digunakan
+adalah <code>Y ~ X</code> sesuai pilihan pengguna.</p></li>
+<li><h3 id="penyimpanan-pemuatan-model">Penyimpanan &amp; Pemuatan
+Model</h3>
 <ul>
-<li>Model dapat disimpan sebagai file <code>.rds</code>.</li>
-<li>Model eksternal (.rds) juga dapat dimuat kembali untuk digunakan
-tanpa perlu melatih ulang.</li>
+<li>Model yang sudah dilatih dapat disimpan dalam format
+<code>.rds</code> dengan tombol <strong>💾 Simpan Model</strong>.</li>
+<li>Pengguna juga bisa memuat ulang model yang telah tersimpan dengan
+tombol <strong>🔁 Muat Model</strong> tanpa perlu melatih ulang.</li>
 </ul></li>
-<li><p><strong>Prediksi Nilai Baru</strong><br />
-Pengguna dapat memasukkan nilai X baru, dan aplikasi akan memberikan
-hasil prediksi nilai Y berdasarkan model regresi yang tersedia.</p></li>
+<li><h3 id="prediksi-data-testing">Prediksi Data Testing</h3>
+<p>Setelah mengunggah file <code>.csv</code> berisi data testing dan
+menekan tombol <strong>🔍 Prediksi Data Testing</strong>, aplikasi akan
+menampilkan hasil prediksi nilai Y berdasarkan model regresi yang
+tersedia.</p></li>
 </ol>
 <hr />
 </div>
-<div id="fungsionalitas-utama" class="section level2">
-<h2>4. Fungsionalitas Utama</h2>
+<div id="fitur-fitur-utama" class="section level2">
+<h2>4. Fitur-Fitur Utama</h2>
 <table>
 <colgroup>
 <col width="26%" />
@@ -430,44 +455,51 @@ hasil prediksi nilai Y berdasarkan model regresi yang tersedia.</p></li>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Unggah Data</td>
-<td>Upload file .csv dan validasi format</td>
+<td>Upload Data Training</td>
+<td>Memasukkan file .csv sebagai dataset pelatihan</td>
 </tr>
 <tr class="even">
-<td>Pemilihan Variabel</td>
-<td>Dropdown dinamis dari kolom dataset</td>
+<td>Pilih Variabel</td>
+<td>Memilih variabel independen (X) dan dependen (Y) dari kolom
+dataset</td>
 </tr>
 <tr class="odd">
 <td>Visualisasi Korelasi</td>
-<td>Plot heatmap korelasi dari variabel numerik</td>
+<td>Plot heatmap korelasi antar variabel numerik</td>
 </tr>
 <tr class="even">
-<td>Plot EDA</td>
-<td>Scatter plot + garis regresi</td>
+<td>Eksplorasi Data (EDA)</td>
+<td>Scatterplot hubungan X dan Y serta garis regresi</td>
 </tr>
 <tr class="odd">
-<td>Model Regresi</td>
-<td>Regresi linier sederhana <code>Y ~ X</code></td>
+<td>Model Regresi Linier</td>
+<td>Menggunakan <code>lm()</code> untuk membentuk model regresi
+sederhana</td>
 </tr>
 <tr class="even">
-<td>Simpan/Muat Model</td>
-<td>Ekspor dan impor model <code>.rds</code></td>
+<td>Simpan &amp; Muat Model</td>
+<td>Menyimpan dan membaca model <code>.rds</code> agar bisa digunakan
+kembali</td>
 </tr>
 <tr class="odd">
-<td>Prediksi Nilai Baru</td>
-<td>Prediksi berdasarkan input pengguna terhadap model yang dilatih</td>
+<td>Prediksi Data Testing</td>
+<td>Prediksi nilai Y dari file testing (.csv) berdasarkan model yang
+ada</td>
 </tr>
 </tbody>
 </table>
 <hr />
 </div>
-<div id="penutup" class="section level2">
-<h2>5. Penutup</h2>
-<p>Aplikasi ini bersifat fleksibel dan dapat digunakan untuk berbagai
-jenis dataset numerik. Dengan antarmuka yang interaktif dan
-fungsionalitas prediktif, aplikasi ini cocok digunakan untuk keperluan
-praktikum, pembelajaran, maupun riset eksploratif awal terhadap data
-regresi.</p>
+<div id="kesimpulan" class="section level2">
+<h2>5. Kesimpulan</h2>
+<p>Aplikasi ini menyediakan antarmuka yang interaktif dan fleksibel
+untuk melakukan analisis regresi linier sederhana berbasis file
+<code>.csv</code>. Pengguna dapat dengan mudah menjelajahi data, melatih
+model, serta melakukan prediksi terhadap data baru. Fitur penyimpanan
+model membuat proses ini efisien dan dapat diulang tanpa perlu melatih
+ulang model setiap saat. Aplikasi ini sangat sesuai digunakan dalam
+pembelajaran analisis data, praktikum statistik, maupun riset eksplorasi
+awal.</p>
 </div>
 
 

@@ -1,65 +1,79 @@
 ---
-title: "Deskripsi Aplikasi Shiny Prediksi Regresi"
-author: "Ameliatus Sholichah"
+title: "Deskripsi Aplikasi Shiny: Prediksi Regresi Linier"
+author: "Ameliatus Sholichah dan Nanda Zhafran Mahendra"
 date: "`r Sys.Date()`"
 output: html_document
 ---
 
 ## 1. Pendahuluan
 
-Aplikasi ini dirancang menggunakan **R Shiny** untuk membantu pengguna melakukan **prediksi nilai variabel Y berdasarkan nilai variabel X** dengan metode regresi linier sederhana. Aplikasi ini sangat berguna dalam eksplorasi data serta prediksi berbasis model regresi, khususnya untuk data .csv yang diunggah pengguna.
+Aplikasi ini dibangun menggunakan **R Shiny** untuk melakukan **prediksi nilai variabel Y berdasarkan nilai variabel X** dengan pendekatan **regresi linier sederhana**. Aplikasi ini mendukung proses eksplorasi data, pelatihan model, penyimpanan dan pemuatan model `.rds`, serta prediksi terhadap data baru yang diunggah oleh pengguna.
 
 ---
 
-## 2. Desain Aplikasi
+## 2. Desain Antarmuka Aplikasi
 
-Aplikasi terdiri dari dua bagian utama:
+Aplikasi memiliki dua komponen utama:
 
-- **Sidebar Panel**: berisi kontrol pengguna seperti upload file, pemilihan variabel, pelatihan model, dan prediksi.
-- **Main Panel**: berisi output visual dan teks seperti preview data, plot korelasi, hasil eksplorasi data, ringkasan model, dan hasil prediksi.
+- **Sidebar Panel**:
+  - Upload data training (.csv)
+  - Pemilihan variabel X dan Y
+  - Tombol pelatihan model (`Latih Model`)
+  - Tombol simpan model (`💾 Simpan Model (.rds)`)
+  - Tombol muat ulang model (`🔁 Muat Model`)
+  - Upload data testing (.csv)
+  - Tombol prediksi (`🔍 Prediksi Data Testing`)
+
+- **Main Panel (Output)**:
+  - **Data Preview**: Tabel data dan ringkasan statistik
+  - **Correlation Matrix**: Visualisasi korelasi antar variabel numerik
+  - **Exploratory Analysis**: Scatterplot + garis regresi
+  - **Model Regresi**: Ringkasan model dan metrik
+  - **Prediksi Data Baru**: Tabel prediksi data testing
 
 ---
 
 ## 3. Alur Penggunaan Aplikasi
 
-1. **Unggah Dataset**  
-   Pengguna memilih dan mengunggah file `.csv` melalui widget `fileInput`. File divalidasi agar hanya format `.csv` yang diterima.
+1. ### Unggah Data Training
+   Pengguna mengunggah file `.csv` berisi data pelatihan. Aplikasi hanya menerima file dengan ekstensi `.csv`.
 
-2. **Pilih Variabel X dan Y**  
-   Setelah data berhasil dimuat, aplikasi secara otomatis menampilkan dropdown untuk memilih variabel independen (X) dan dependen (Y).
+2. ### Pemilihan Variabel X dan Y
+   Setelah data berhasil dimuat, pengguna dapat memilih variabel **X** (independen) dan **Y** (dependen) dari dropdown yang muncul otomatis berdasarkan nama kolom pada dataset.
 
-3. **Eksplorasi Data**  
-   - **Preview Data**: ditampilkan dalam bentuk tabel interaktif.
-   - **Matriks Korelasi**: dibuat berdasarkan variabel numerik dalam dataset.
-   - **Plot EDA**: scatterplot dengan garis regresi ditampilkan untuk visualisasi hubungan X dan Y.
+3. ### Visualisasi Data
+   - **Data Preview**: Menampilkan isi dataset dalam bentuk tabel interaktif.
+   - **Ringkasan Statistik**: Menampilkan statistik deskriptif menggunakan fungsi `summary()`.
+   - **Matriks Korelasi**: Menggunakan `cor()` dan `ggplot2` untuk membuat heatmap korelasi antar variabel numerik.
+   - **EDA Plot**: Menampilkan scatterplot antara X dan Y, lengkap dengan garis regresi linier.
 
-4. **Latih Model Regresi**  
-   Dengan menekan tombol *Latih Model Regresi*, aplikasi membentuk model regresi linier menggunakan fungsi `lm()`.
+4. ### Pelatihan Model
+   Model regresi dibentuk menggunakan fungsi `lm()` setelah tombol **Latih Model** ditekan. Formula yang digunakan adalah `Y ~ X` sesuai pilihan pengguna.
 
-5. **Simpan dan Muat Model**  
-   - Model dapat disimpan sebagai file `.rds`.
-   - Model eksternal (.rds) juga dapat dimuat kembali untuk digunakan tanpa perlu melatih ulang.
+5. ### Penyimpanan & Pemuatan Model
+   - Model yang sudah dilatih dapat disimpan dalam format `.rds` dengan tombol **💾 Simpan Model**.
+   - Pengguna juga bisa memuat ulang model yang telah tersimpan dengan tombol **🔁 Muat Model** tanpa perlu melatih ulang.
 
-6. **Prediksi Nilai Baru**  
-   Pengguna dapat memasukkan nilai X baru, dan aplikasi akan memberikan hasil prediksi nilai Y berdasarkan model regresi yang tersedia.
+6. ### Prediksi Data Testing
+   Setelah mengunggah file `.csv` berisi data testing dan menekan tombol **🔍 Prediksi Data Testing**, aplikasi akan menampilkan hasil prediksi nilai Y berdasarkan model regresi yang tersedia.
 
 ---
 
-## 4. Fungsionalitas Utama
+## 4. Fitur-Fitur Utama
 
 | Fitur                      | Deskripsi                                                                 |
 |---------------------------|---------------------------------------------------------------------------|
-| Unggah Data               | Upload file .csv dan validasi format                                      |
-| Pemilihan Variabel        | Dropdown dinamis dari kolom dataset                                      |
-| Visualisasi Korelasi      | Plot heatmap korelasi dari variabel numerik                              |
-| Plot EDA                  | Scatter plot + garis regresi                                              |
-| Model Regresi             | Regresi linier sederhana `Y ~ X`                                          |
-| Simpan/Muat Model         | Ekspor dan impor model `.rds`                                             |
-| Prediksi Nilai Baru       | Prediksi berdasarkan input pengguna terhadap model yang dilatih           |
+| Upload Data Training       | Memasukkan file .csv sebagai dataset pelatihan                           |
+| Pilih Variabel             | Memilih variabel independen (X) dan dependen (Y) dari kolom dataset      |
+| Visualisasi Korelasi       | Plot heatmap korelasi antar variabel numerik                             |
+| Eksplorasi Data (EDA)      | Scatterplot hubungan X dan Y serta garis regresi                         |
+| Model Regresi Linier       | Menggunakan `lm()` untuk membentuk model regresi sederhana                |
+| Simpan & Muat Model        | Menyimpan dan membaca model `.rds` agar bisa digunakan kembali           |
+| Prediksi Data Testing      | Prediksi nilai Y dari file testing (.csv) berdasarkan model yang ada     |
 
 ---
 
-## 5. Penutup
+## 5. Kesimpulan
 
-Aplikasi ini bersifat fleksibel dan dapat digunakan untuk berbagai jenis dataset numerik. Dengan antarmuka yang interaktif dan fungsionalitas prediktif, aplikasi ini cocok digunakan untuk keperluan praktikum, pembelajaran, maupun riset eksploratif awal terhadap data regresi.
+Aplikasi ini menyediakan antarmuka yang interaktif dan fleksibel untuk melakukan analisis regresi linier sederhana berbasis file `.csv`. Pengguna dapat dengan mudah menjelajahi data, melatih model, serta melakukan prediksi terhadap data baru. Fitur penyimpanan model membuat proses ini efisien dan dapat diulang tanpa perlu melatih ulang model setiap saat. Aplikasi ini sangat sesuai digunakan dalam pembelajaran analisis data, praktikum statistik, maupun riset eksplorasi awal.
 

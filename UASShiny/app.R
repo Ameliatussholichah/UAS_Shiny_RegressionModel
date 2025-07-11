@@ -3,6 +3,7 @@ library(ggplot2)
 library(DT)
 library(dplyr)
 library(reshape2)
+library(broom)  # untuk glance()
 
 ui <- fluidPage(
   titlePanel("Aplikasi Prediksi Variabel Y Berdasarkan Variabel X"),
@@ -15,19 +16,23 @@ ui <- fluidPage(
       actionButton("train", "Latih Model"),
       downloadButton("saveModel", "💾 Simpan Model (.rds)"),
       actionButton("loadTrainedModel", "🔁 Muat Model"),
-      
-      
       fileInput("testFile", "Unggah Data Testing (csv)", accept = ".csv"),
       actionButton("predictTest", "🔍 Prediksi Data Testing")
     ),
     
     mainPanel(
       tabsetPanel(
-        tabPanel("Data Preview", dataTableOutput("dataPreview")),
+        tabPanel("Data Preview",
+                 dataTableOutput("dataPreview"),
+                 verbatimTextOutput("dataSummary")
+        ),
         tabPanel("Correlation Matrix", plotOutput("corPlot")),
-        tabPanel("Eksploratory Analysis", plotOutput("edaPlot")),
-        tabPanel("Model Regresi", verbatimTextOutput("modelSummary"),
-                 plotOutput("actualVsPredicted")),
+        tabPanel("Exploratory Analysis", plotOutput("edaPlot")),
+        tabPanel("Model Regresi",
+                 verbatimTextOutput("modelSummary"),
+                 verbatimTextOutput("modelMetrics"),
+                 plotOutput("actualVsPredicted")
+        ),
         tabPanel("Prediksi Data Baru", dataTableOutput("testPrediction"))
       )
     )
@@ -42,6 +47,14 @@ server <- function(input, output, session) {
     read.csv(input$datafile$datapath)
   })
   
+  output$dataPreview <- renderDataTable({
+    dataset()
+  })
+  
+  output$dataSummary <- renderPrint({
+    summary(dataset())
+  })
+  
   output$xvar_ui <- renderUI({
     req(dataset())
     selectInput("xvar", "Pilih Variabel X:", choices = names(dataset()))
@@ -50,10 +63,6 @@ server <- function(input, output, session) {
   output$yvar_ui <- renderUI({
     req(dataset())
     selectInput("yvar", "Pilih Variabel Y:", choices = names(dataset()))
-  })
-  
-  output$dataPreview <- renderDataTable({
-    dataset()
   })
   
   output$corPlot <- renderPlot({
@@ -69,16 +78,17 @@ server <- function(input, output, session) {
       theme_minimal() +
       labs(title = "Matriks Korelasi") +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
-    
   })
   
   output$edaPlot <- renderPlot({
     req(input$xvar, input$yvar)
     data <- dataset()
-    ggplot(data, aes_string(x = input$xvar, y = input$yvar)) +
+    ggplot(data, aes_string(x = input$xvar, y = input$yvar, color = input$yvar)) +
       geom_point() +
       geom_smooth(method = "lm", se = FALSE) +
-      labs(x = input$xvar, y = input$yvar, title = "Scatterplot dan Regresi Linier")
+      labs(x = input$xvar, y = input$yvar, title = "Scatterplot dan Regresi Linier") +
+      scale_color_gradient(low = "yellow", high = "purple") +
+      theme_minimal()
   })
   
   model <- reactiveVal(NULL)
@@ -89,8 +99,6 @@ server <- function(input, output, session) {
     formula <- as.formula(paste(input$yvar, "~", input$xvar))
     trained_model <- lm(formula, data = data)
     model(trained_model)
-    
-    # Simpan model ke file sementara
     saveRDS(trained_model, file = "trained_model_temp.rds")
   })
   
@@ -98,25 +106,23 @@ server <- function(input, output, session) {
     req(model())
     summary(model())
   })
-    output$actualVsPredicted <- renderPlot({
-      req(model(), input$xvar, input$yvar)
-      data <- dataset()
-      
-      # Buat prediksi
-      predicted <- predict(model(), newdata = data)
-      actual <- data[[input$yvar]]
-      
-      df_plot <- data.frame(Aktual = actual, Prediksi = predicted)
-      
-      ggplot(df_plot, aes(x = Aktual, y = Prediksi)) +
-        geom_point(color = "purple") +
-        geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
-        labs(
-          title = "Plot Actual vs Predicted",
-          x = "Actual",
-          y = "Predicted"
-        ) +
-        theme_minimal()
+  
+  output$modelMetrics <- renderPrint({
+    req(model())
+    glance(model())
+  })
+  
+  output$actualVsPredicted <- renderPlot({
+    req(model(), input$xvar, input$yvar)
+    data <- dataset()
+    predicted <- predict(model(), newdata = data)
+    actual <- data[[input$yvar]]
+    df_plot <- data.frame(Aktual = actual, Prediksi = predicted)
+    ggplot(df_plot, aes(x = Aktual, y = Prediksi)) +
+      geom_point(color = "purple") +
+      geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
+      labs(title = "Plot Actual vs Predicted", x = "Actual", y = "Predicted") +
+      theme_minimal()
   })
   
   output$saveModel <- downloadHandler(
